@@ -12,6 +12,13 @@ download-ai:
 download-frontend:
 	@bash ./download/download_frontend.sh
 
+
+compil-frontend:
+	@bash ./compil/frontend.sh
+
+compil-backend:
+	@bash ./compil/backend.sh
+
 setup: install download-backend download-frontend
 
 all: setup

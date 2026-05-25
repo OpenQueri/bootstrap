@@ -10,4 +10,4 @@ git clone https://github.com/OpenQueri/OpenQueri-backend OpenQueri-backend
 
 git clone https://github.com/OpenQueri/crawler-engine crawler-engine 
 
-wait
+
