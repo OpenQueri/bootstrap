@@ -22,11 +22,6 @@ cat > .env <<EOF
 DATABASE_URL=postgres://user:password@127.0.0.1:5432/open_queri
 EOF
 
-echo "=== 5. START DOCKER DB ==="
-sudo docker compose up -d
-
-echo "=== 6. WAIT DB START ==="
-sleep 5
 
 echo "=== 7. INSTALL SQLX CLI ==="
 cargo install sqlx-cli --no-default-features --features postgres
