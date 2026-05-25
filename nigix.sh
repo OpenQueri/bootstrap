@@ -2,43 +2,69 @@
 set -e
 
 echo "=== SYSTEM UPDATE ==="
+sudo apt update
 sudo apt install -y nginx nodejs npm
 
-echo "=== BUILD FRONTEND (from dist source if needed) ==="
-cd /home/ubuntu/dist
+echo "=== FIND FRONTEND DIST ==="
+FRONTEND_DIST=$(find /home/ubuntu -type d -name "dist" | head -n 1)
 
-cd /home/ubuntu
+if [ -z "$FRONTEND_DIST" ]; then
+  echo "❌ dist not found"
+  exit 1
+fi
 
-echo "=== NGINX CONFIG ==="
-sudo tee /etc/nginx/sites-available/openqueri > /dev/null <<'EOF'
+echo "Frontend dist found: $FRONTEND_DIST"
+
+echo "=== FIND BACKEND ==="
+BACKEND_DIR=$(find /home/ubuntu -type f -name "Cargo.toml" | grep OpenQueri-backend | head -n 1 | xargs dirname)
+
+if [ -z "$BACKEND_DIR" ]; then
+  echo "❌ backend not found"
+  exit 1
+fi
+
+echo "Backend found: $BACKEND_DIR"
+
+echo "=== BUILD BACKEND ==="
+cd "$BACKEND_DIR"
+cargo build --release
+
+BACKEND_BIN="$BACKEND_DIR/target/release/OpenQueri-backend"
+
+if [ ! -f "$BACKEND_BIN" ]; then
+  echo "❌ backend binary not found"
+  exit 1
+fi
+
+echo "=== CONFIGURE NGINX ==="
+sudo rm -f /etc/nginx/sites-enabled/default || true
+
+sudo tee /etc/nginx/sites-available/openqueri > /dev/null <<EOF
 server {
     listen 80;
     server_name _;
 
-    root /home/ubuntu/dist;
+    root $FRONTEND_DIST;
     index index.html;
 
     location / {
-        try_files $uri /index.html;
+        try_files \$uri /index.html;
     }
 
     location /api/ {
         proxy_pass http://127.0.0.1:3000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
     }
 }
 EOF
 
 sudo ln -sf /etc/nginx/sites-available/openqueri /etc/nginx/sites-enabled/openqueri
+
 sudo nginx -t
 sudo systemctl restart nginx
 
-echo "=== BUILD BACKEND ==="
-cd /home/ubuntu/OpenQueri-backend
-cargo build --release
-
-echo "=== SYSTEMD SERVICE ==="
+echo "=== SYSTEMD BACKEND SERVICE ==="
 sudo tee /etc/systemd/system/openqueri.service > /dev/null <<EOF
 [Unit]
 Description=OpenQueri Backend
@@ -46,11 +72,11 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/ubuntu/OpenQueri-backend
-ExecStart=/home/ubuntu/OpenQueri-backend/target/release/OpenQueri-backend
+WorkingDirectory=$BACKEND_DIR
+ExecStart=$BACKEND_BIN
 Restart=always
 RestartSec=5
-EnvironmentFile=/home/ubuntu/OpenQueri-backend/.env
+EnvironmentFile=$BACKEND_DIR/.env
 
 [Install]
 WantedBy=multi-user.target
@@ -62,4 +88,4 @@ sudo systemctl restart openqueri
 
 echo "=== DONE ==="
 echo "Frontend: http://YOUR_VPS_IP/"
-echo "Backend running on :3000 (internal)"
+echo "Backend: running on 127.0.0.1:3000"

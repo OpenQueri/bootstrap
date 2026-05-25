@@ -19,7 +19,7 @@ compil-frontend:
 compil-backend:
 	@bash ./compil/backend.sh
 
-compil-nigix:
+nigix:
 	@bash ./nigix.sh
 
 setup: install download-backend download-frontend
