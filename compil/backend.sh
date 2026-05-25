@@ -26,6 +26,8 @@ EOF
 echo "=== 7. INSTALL SQLX CLI ==="
 cargo install sqlx-cli --no-default-features --features postgres
 
+sqlx migrate run
+
 echo "=== 8. GENERATE SQLX CACHE (IMPORTANT) ==="
 unset SQLX_OFFLINE
 cargo sqlx prepare
