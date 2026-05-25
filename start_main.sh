@@ -32,5 +32,5 @@ pwd
 
 echo "DATABASE_URL=postgres://user:password@127.0.0.1:5432/open_queri" > .env
 
-make -j$(nproc) compil-nigix
+make -j$(nproc) nigix
 
