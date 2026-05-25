@@ -37,6 +37,6 @@ export SQLX_OFFLINE=true
 cargo build --release
 
 echo "=== 10. MOVE BINARY ==="
-mv target/release/OpenQueri-backend ../../
+mv target/release/OpenQueri-backend ../../../
 
 echo "=== DONE ==="
