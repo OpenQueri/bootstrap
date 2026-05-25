@@ -24,3 +24,8 @@ sudo docker compose up -d
 make -j$(nproc) compil-frontend
 
 make -j$(nproc) compil-backend
+
+
+сd ..
+
+echo "DATABASE_URL=postgres://user:password@127.0.0.1:5432/open_queri" > .env
