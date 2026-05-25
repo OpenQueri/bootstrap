@@ -33,3 +33,4 @@ fi
 
 sudo nginx -t
 sudo systemctl restart nginx
+sudo systemctl enable nginx

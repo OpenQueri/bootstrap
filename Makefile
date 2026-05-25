@@ -22,6 +22,9 @@ compil-backend:
 nigix:
 	@bash ./nigix.sh
 
+backend-background:
+	@bash ./backend_background.sh
+
 setup: install download-backend download-frontend
 
 all: setup
