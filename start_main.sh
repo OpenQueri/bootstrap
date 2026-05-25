@@ -15,9 +15,7 @@ make -j$(nproc) download-frontend
 
 sudo usermod -aG docker $USER
 
-newgrp docker <<EOF
-docker compose up -d
-EOF
+
 
 sudo docker compose up -d
 
