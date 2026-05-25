@@ -19,7 +19,7 @@ newgrp docker <<EOF
 docker compose up -d
 EOF
 
-docker compose up -d
+sudo docker compose up -d
 
 make -j$(nproc) compil-frontend
 
