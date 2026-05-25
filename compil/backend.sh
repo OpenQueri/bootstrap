@@ -12,3 +12,5 @@ cd OpenQueri-backend/
 export SQLX_OFFLINE=true
 cargo build --release
 
+mv target/release/OpenQueri-backend ../../..
+
