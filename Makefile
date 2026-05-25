@@ -1,0 +1,15 @@
+.PHONY: install download-backend download-frontend setup all
+
+install:
+	@bash ./install/install.sh
+
+download-backend:
+	@bash ./download/download_engine.sh
+
+download-frontend:
+	@bash ./download/download_frontend.sh
+
+setup: install download-backend download-frontend
+
+all: setup
+	@echo "Everything is ready"
