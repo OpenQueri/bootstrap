@@ -1,42 +1,44 @@
 #!/bin/bash
 set -e
 
+BASE="/home/ubuntu"
+
 echo "=== SYSTEM UPDATE ==="
 sudo apt update
 sudo apt install -y nginx nodejs npm
 
-echo "=== FIND FRONTEND DIST ==="
-FRONTEND_DIST=$(find /home/ubuntu -type d -name "dist" | head -n 1)
+echo "=== FIX PERMISSIONS (IMPORTANT) ==="
+sudo chown -R ubuntu:ubuntu $BASE
 
-if [ -z "$FRONTEND_DIST" ]; then
-  echo "❌ dist not found"
+echo "=== FRONTEND PATH ==="
+FRONTEND_DIST="$BASE/dist"
+
+if [ ! -d "$FRONTEND_DIST" ]; then
+  echo "❌ Frontend dist not found at $FRONTEND_DIST"
   exit 1
 fi
 
-echo "Frontend dist found: $FRONTEND_DIST"
+echo "=== BACKEND PATH ==="
+BACKEND_DIR="$BASE/bootstrap/Engine/OpenQueri-backend"
 
-echo "=== FIND BACKEND ==="
-BACKEND_DIR=$(find /home/ubuntu -type f -name "Cargo.toml" | grep OpenQueri-backend | head -n 1 | xargs dirname)
-
-if [ -z "$BACKEND_DIR" ]; then
-  echo "❌ backend not found"
+if [ ! -d "$BACKEND_DIR" ]; then
+  echo "❌ Backend not found at $BACKEND_DIR"
   exit 1
 fi
-
-echo "Backend found: $BACKEND_DIR"
 
 echo "=== BUILD BACKEND ==="
 cd "$BACKEND_DIR"
+cargo clean
 cargo build --release
 
 BACKEND_BIN="$BACKEND_DIR/target/release/OpenQueri-backend"
 
 if [ ! -f "$BACKEND_BIN" ]; then
-  echo "❌ backend binary not found"
+  echo "❌ Backend binary not found"
   exit 1
 fi
 
-echo "=== CONFIGURE NGINX ==="
+echo "=== NGINX CONFIG ==="
 sudo rm -f /etc/nginx/sites-enabled/default || true
 
 sudo tee /etc/nginx/sites-available/openqueri > /dev/null <<EOF
@@ -60,11 +62,10 @@ server {
 EOF
 
 sudo ln -sf /etc/nginx/sites-available/openqueri /etc/nginx/sites-enabled/openqueri
-
 sudo nginx -t
 sudo systemctl restart nginx
 
-echo "=== SYSTEMD BACKEND SERVICE ==="
+echo "=== SYSTEMD BACKEND ==="
 sudo tee /etc/systemd/system/openqueri.service > /dev/null <<EOF
 [Unit]
 Description=OpenQueri Backend
@@ -75,7 +76,7 @@ Type=simple
 WorkingDirectory=$BACKEND_DIR
 ExecStart=$BACKEND_BIN
 Restart=always
-RestartSec=5
+RestartSec=3
 EnvironmentFile=$BACKEND_DIR/.env
 
 [Install]
